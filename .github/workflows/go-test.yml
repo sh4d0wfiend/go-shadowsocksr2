@@ -8,14 +8,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: azure/docker-login@v1
-      with:
-        login-server: docker.pkg.github.com
-        username: ${{ secrets.DOCKER_GITHUB_USERNAME }}
-        password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
     - uses: actions/checkout@v2
     - name: Install Dependencies
-      run: go get -t -v ./...
+      run: |
+        docker login -u $GITHUB_ACTOR -p ${{ secrets.DOCKER_GITHUB_TOKEN }} docker.pkg.github.com
+        go get -t -v ./...
     - name: Test Code
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
     - uses: codecov/codecov-action@v1
