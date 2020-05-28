@@ -12,9 +12,7 @@ jobs:
     - name: Install Dependencies
       run: go get -t -v ./...
     - name: Test Code
-      run: |
-        docker login -u ${{ secrets.DOCKER_GITHUB_USERNAME }} -p ${{ secrets.DOCKER_GITHUB_TOKEN }} docker.pkg.github.com
-        go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
     - uses: codecov/codecov-action@v1
       with:
         file: ./coverage.txt

@@ -19,7 +19,7 @@ func StartTestServer(enc string) (*dockertest.Pool, *dockertest.Resource) {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	resource, err := pool.Run("docker.pkg.github.com/sh4d0wfiend/go-shadowsocksr2/shadowsocksr", "latest", []string{
+	resource, err := pool.Run("sh4d0wfiend/shadowsocksr", "latest", []string{
 		fmt.Sprintf("ENCRYPTION=%s", enc),
 	})
 	if err != nil {
@@ -56,7 +56,7 @@ func serializeAddress(address string) []byte {
 	return bytes.Join(buf, nil)
 }
 
-func SimulateRequest(enc string) {
+func SimulateRequest(enc string) error {
 	pool, server := StartTestServer(enc)
 	defer StopTestServer(pool, server)
 	time.Sleep(2 * time.Second)
@@ -65,22 +65,22 @@ func SimulateRequest(enc string) {
 		Dial: func(network string, addr string) (net.Conn, error) {
 			c, err := net.Dial("tcp", net.JoinHostPort("", server.GetPort("8388/tcp")))
 			if err != nil {
-				log.Fatalf("Failed to connect to proxy: %s", err)
+				return nil, fmt.Errorf("Failed to connect to proxy: %s", err)
 			}
 
 			ciph, err := encryption.PickCipher(enc, nil, "password")
 			if err != nil {
-				log.Fatalf("Failed to initialize cipher: %s", err)
+				return nil, fmt.Errorf("Failed to initialize cipher: %s", err)
 			}
 
 			ec, err := ciph.StreamConn(c)
 			if err != nil {
-				log.Fatalf("Failed to initialize encrypted stream: %s", err)
+				return nil, fmt.Errorf("Failed to initialize encrypted stream: %s", err)
 			}
 
 			_, err = ec.Write(serializeAddress("www.baidu.com"))
 			if err != nil {
-				log.Fatalf("Failed to establish SOCKS connection: %s", err)
+				return nil, fmt.Errorf("Failed to establish SOCKS connection: %s", err)
 			}
 
 			return ec, nil
@@ -93,9 +93,11 @@ func SimulateRequest(enc string) {
 
 	resp, err := netClient.Get("http://www.baidu.com")
 	if err != nil {
-		log.Fatalf("HTTP request failed: %s", err)
+		return fmt.Errorf("HTTP request failed: %s", err)
 	}
 	if resp.StatusCode != 200 {
-		log.Fatalf("HTTP request failed with code %d", resp.StatusCode)
+		return fmt.Errorf("HTTP request failed with code %d", resp.StatusCode)
 	}
+
+	return nil
 }
