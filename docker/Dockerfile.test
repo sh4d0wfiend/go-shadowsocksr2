@@ -1,0 +1,12 @@
+FROM python:3
+RUN apt-get update && apt-get install -y libsodium-dev
+RUN wget -qO- https://github.com/shadowsocksrr/shadowsocksr/archive/akkariiin/master.tar.gz | tar -xzf - -C /
+WORKDIR /shadowsocksr-akkariiin-master/shadowsocks
+
+ENV KEY=password
+ENV ENCRYPTION=aes-256-cfb
+ENV PROTOCOL=plain
+ENV OBFS=plain
+
+EXPOSE 8388
+CMD python server.py -k ${KEY} -m ${ENCRYPTION} -O ${PROTOCOL} -o ${OBFS} -vv
