@@ -10,9 +10,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install Dependencies
-      run: |
-        docker login -u $GITHUB_ACTOR -p ${{ secrets.DOCKER_GITHUB_TOKEN }} docker.pkg.github.com
-        go get -t -v ./...
+      run: go get -t -v ./...
+    - name: Docker Login
+      uses: azure/docker-login@v1
+      with:
+        login-server: docker.pkg.github.com
+        username: $GITHUB_ACTOR
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Test Code
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
     - uses: codecov/codecov-action@v1
