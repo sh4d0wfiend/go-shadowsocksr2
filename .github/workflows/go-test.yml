@@ -8,6 +8,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+    - uses: azure/docker-login@v1
+      with:
+        login-server: docker.pkg.github.com
+        username: ${{ secrets.DOCKER_GITHUB_USERNAME }}
+        password: ${{ secrets.DOCKER_GITHUB_TOKEN }}
     - uses: actions/checkout@v2
     - name: Install Dependencies
       run: go get -t -v ./...
